@@ -5,25 +5,32 @@
   --fg:      #161614;
   --muted:   #6d6a64;
   --rule:    #e6e4df;
-  --hover:   #f4f2ee;
+  --hover:   #f5f2ed;
   --tag-bg:  #efece7;
   --tag-fg:  #6d6a64;
-  --focus:   #3b6ea5;
+
+  --accent:      #b0561d;
+  --accent-tint: rgba(176, 86, 29, 0.13);
+  --wash:        rgba(176, 86, 29, 0.05);
 
   --measure: 34rem;
   --step:    1.6rem;
+  --ease:    cubic-bezier(0.22, 0.8, 0.3, 1);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg:     #14140f;
-    --fg:     #eceae4;
-    --muted:  #9a968d;
-    --rule:   #2b2b25;
-    --hover:  #1d1d17;
-    --tag-bg: #24241d;
-    --tag-fg: #9a968d;
-    --focus:  #7fb0e0;
+    --bg:      #14140f;
+    --fg:      #eceae4;
+    --muted:   #9a968d;
+    --rule:    #2b2b25;
+    --hover:   #1e1e17;
+    --tag-bg:  #24241d;
+    --tag-fg:  #9a968d;
+
+    --accent:      #e6a765;
+    --accent-tint: rgba(230, 167, 101, 0.16);
+    --wash:        rgba(230, 167, 101, 0.05);
   }
 }
 
@@ -31,7 +38,10 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
 
 body {
   margin: 0;
@@ -43,22 +53,68 @@ body {
   font-size: 17px;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  color: inherit;
-  text-decoration-color: var(--rule);
-  text-underline-offset: 3px;
-  transition: text-decoration-color 120ms ease;
+/* Soft light source behind the header. Fixed so it never scrolls into view
+   as a visible edge. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(58rem 34rem at 50% -12%, var(--wash), transparent 68%);
 }
 
-a:hover { text-decoration-color: currentColor; }
+/* Base link colour. Context rules below (.bio a, .links a, .more a) override
+   this; .project relies on it. */
+a { color: inherit; }
+
+::selection {
+  background: var(--accent-tint);
+  color: var(--fg);
+}
 
 :focus-visible {
-  outline: 2px solid var(--focus);
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
-  border-radius: 2px;
+  border-radius: 3px;
 }
+
+/* ---- entrance ---- */
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(0.55rem); }
+  to   { opacity: 1; transform: none; }
+}
+
+.intro h1,
+.intro .bio,
+.intro .links,
+.work h2,
+.projects li,
+.more,
+footer {
+  animation: rise 600ms var(--ease) backwards;
+}
+
+.intro h1     { animation-delay:  40ms; }
+.intro .bio   { animation-delay: 110ms; }
+.intro .links { animation-delay: 180ms; }
+.work h2      { animation-delay: 260ms; }
+
+/* Staggered per row. Extend this list if you add projects — anything past
+   the last rule just animates on the base delay. */
+.projects li                { animation-delay: 320ms; }
+.projects li:nth-child(2)   { animation-delay: 380ms; }
+.projects li:nth-child(3)   { animation-delay: 440ms; }
+.projects li:nth-child(4)   { animation-delay: 500ms; }
+.projects li:nth-child(5)   { animation-delay: 560ms; }
+.projects li:nth-child(6)   { animation-delay: 620ms; }
+
+.more   { animation-delay: 680ms; }
+footer  { animation-delay: 740ms; }
 
 /* ---- layout ---- */
 
@@ -83,7 +139,17 @@ h1 {
   text-wrap: pretty;
 }
 
-.bio a { color: var(--fg); }
+.bio a {
+  color: var(--fg);
+  text-decoration: none;
+  border-bottom: 1.5px solid var(--rule);
+  transition: color 180ms ease, border-color 180ms ease;
+}
+
+.bio a:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
 
 .links {
   display: flex;
@@ -97,12 +163,12 @@ h1 {
   text-decoration: none;
   border-bottom: 1px solid var(--rule);
   padding-bottom: 1px;
-  transition: color 120ms ease, border-color 120ms ease;
+  transition: color 180ms ease, border-color 180ms ease;
 }
 
 .links a:hover {
-  color: var(--fg);
-  border-color: var(--fg);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 /* ---- work ---- */
@@ -128,22 +194,44 @@ h2 {
 .projects li { border-bottom: 1px solid var(--rule); }
 
 .project {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 0.15rem 1rem;
-  padding: 0.95rem 0.6rem;
-  margin: 0 -0.6rem;
+  padding: 0.95rem 0.7rem;
+  margin: 0 -0.7rem;
   text-decoration: none;
-  border-radius: 5px;
-  transition: background-color 120ms ease;
+  border-radius: 6px;
+  transition: background-color 180ms ease;
 }
 
-.project:hover { background: var(--hover); }
+/* Accent rail that wipes in from the row's vertical centre. */
+.project::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  transform: scaleY(0);
+  transition: transform 200ms var(--ease);
+}
+
+.project:hover,
+.project:focus-visible { background: var(--hover); }
+
+.project:hover::before,
+.project:focus-visible::before { transform: scaleY(1); }
 
 .name {
   grid-column: 1;
   font-weight: 550;
+  transition: color 180ms ease;
 }
+
+.project:hover .name { color: var(--accent); }
 
 .desc {
   grid-column: 1;
@@ -161,9 +249,16 @@ h2 {
   color: var(--tag-fg);
   font-size: 0.72rem;
   letter-spacing: 0.02em;
-  padding: 0.18rem 0.5rem;
+  padding: 0.18rem 0.55rem;
+  border: 1px solid transparent;
   border-radius: 999px;
   white-space: nowrap;
+  transition: border-color 180ms ease, color 180ms ease;
+}
+
+.project:hover .lang {
+  border-color: var(--accent-tint);
+  color: var(--fg);
 }
 
 .more {
@@ -174,9 +269,19 @@ h2 {
 .more a {
   color: var(--muted);
   text-decoration: none;
+  transition: color 180ms ease;
 }
 
-.more a:hover { color: var(--fg); }
+/* Arrow lives here rather than in the markup so it can slide on hover. */
+.more a::after {
+  content: "\2192";
+  display: inline-block;
+  margin-left: 0.35em;
+  transition: transform 200ms var(--ease);
+}
+
+.more a:hover { color: var(--accent); }
+.more a:hover::after { transform: translateX(0.22em); }
 
 /* ---- footer ---- */
 
@@ -205,5 +310,10 @@ footer p { margin: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * { transition: none !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
